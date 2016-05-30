@@ -1,40 +1,44 @@
+function tokenized(inputstr)
+	sep = " "
+    if sep == nil then
+    	sep = "%s"
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+            t[i] = str
+            i = i + 1
+    end
+    return t
+end
+
 function onChat(user, channel, message)
-	aretell = string.sub(message,1,6)
-	if string.find(aretell, ".tell ", 1, 6) then
-		a, b = string.find(message, ".tell")
-		c = string.find(message, " ", 7)
-		if a == nil or b == nil or c == nil then
-			return
-		else
-			nick = string.sub(message, b+2, c-1)
-			message = string.sub(message, b+2)
-
-			table.insert(current.config.tell, {from = user.nick, to = nick, message = message})
-
-			current.irc:sendChat(channel, "Ok, got it.")
+	for k,v in ipairs(current.config.commands) do
+		if string.sub(message,1,#v.name+1) == v.name.." " and v.execute ~= nil then
+			args = tokenized(message)
+			v:execute(user,channel,message,args)
+		end
+		if v.single then
+			args = tokenized(message)
+			v:execute(user,channel,message,args)
+		end
+		if v.every ~= nil then
+			v:every(user,channel,message,args)
 		end
 	end
+end
 
-	areecho = string.sub(message,1,string.len(config.highlight_name.."!"))
-	if string.find(areecho, config.highlight_name.."!") then
-		current.irc:sendChat(channel, user.nick.."!")
-	end
-
-	for i,v in ipairs(current.config.tell) do
-		if user.nick == v.to then
-			current.irc:sendChat(channel, v.from.." left this message for you: "..v.message)
-			table.remove(current.config.tell, i)
+function onJoin(user, channel)
+	for k,v in ipairs(current.config.commands) do
+		if v.onjoin ~= nil then
+			v:onjoin(user,channel)
 		end
 	end
+end
 
-	areseen = string.sub(message,1,6)
-	if string.find(areseen, ".seen ", 1, 6) then
-		nick = string.sub(message,7)
-		if current.config.seen[nick] then
-			current.irc:sendChat(channel, nick.." was last seen on " .. current.config.seen[nick])
+function onLeave(user, channel)
+	for k,v in ipairs(current.config.commands) do
+		if v.onleave ~= nil then
+			v:onleave(user,channel)
 		end
-
 	end
-
-	current.config.seen[user.nick] = os.date()
 end
