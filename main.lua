@@ -2,6 +2,10 @@ config = require "config"
 
 require "irc.init"
 require "hooks"
+echo   = require "commands.echo"
+seen   = require "commands.seen"
+tell   = require "commands.tell"
+timein = require "commands.timein"
 local sleep = require "socket".sleep
 
 servers = {}
@@ -15,11 +19,14 @@ function newServer(nick, server, port, channels, keys, username)
         channels =  channels,
         keys     =  keys,
         port     =  port,
-        seen     =  {},
-        tell     =  {}
+        commands =  {echo,seen,tell,timein}
     }
+
     local s = irc.new(c)
     s:hook("OnChat", onChat)
+    s:hook("OnJoin", onJoin)
+    s:hook("OnQuit", onLeave)
+
     s:connect(server);
 
     for i=1,#channels do
@@ -31,12 +38,12 @@ function newServer(nick, server, port, channels, keys, username)
     table.insert(servers, {config = c, irc = s})
 end
 
-newServer("siObot", "irc.freenode.net", 6667, {"##sio"}, {""})
+newServer("siObot_dev", "irc.freenode.net", 6667, {"##sio"}, {""})
 
 while true do
     for i,v in ipairs(servers) do
         current = v
         v.irc:think()
     end
-	sleep(2)
+	sleep(0.5)
 end
