@@ -1,11 +1,10 @@
-seen = {
+local seen = {
   name = ".seen",
   seen = {}
 }
 
-
 function seen:execute(user,chan,msg,args)
-  date = self.seen[user.nick]
+  local date = self.seen[user.nick]
   if date == nil then
     current.irc:sendChat(chan,"Unkown")
   else
@@ -24,4 +23,5 @@ end
 function seen:every(user,chan,message,args)
   self.seen[user.nick] = os.date("%c")
 end
+
 return seen

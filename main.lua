@@ -38,7 +38,7 @@ function newServer(nick, server, port, channels, keys, username)
     table.insert(servers, {config = c, irc = s})
 end
 
-newServer("siObot_dev", "irc.freenode.net", 6667, {"##sio"}, {""})
+newServer("bytebot_dev", "irc.freenode.net", 6667, {"##oodnet"}, {""})
 
 while true do
     for i,v in ipairs(servers) do
